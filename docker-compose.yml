@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      # Service URLs - Update these with your actual service URLs
+      - USER_SERVICE_URL=http://user-service:3500
+      - SUBSCRIPTION_SERVICE_URL=http://subscription-service:3400
+      - CONFIG_SERVICE_URL=http://config-service:3000
+      - AUDIT_SERVICE_URL=http://audit-service:5000
+      - PROFILE_SERVICE_URL=http://profile-service:5500
+      # Security
+      - JWT_SECRET=your_jwt_secret_key_here
+      - JWT_EXPIRY=900s
+      # CORS
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+      # Logging
+      - LOG_LEVEL=info
+      - ENABLE_REQUEST_LOGGING=true
+    networks:
+      - gateway-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  gateway-network:
+    driver: bridge 
